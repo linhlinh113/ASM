@@ -1,0 +1,24 @@
+package abcnews.entity;
+
+import java.util.Date;
+
+public class News {
+    private String id;
+    private String title;
+    private String content;
+    private String image;
+    private Date postedDate;
+    private String author; 
+    private Integer viewCount;
+    private String categoryId;
+    private Boolean home; 
+
+    public News() { this.viewCount = 0; }
+    // Constructor đầy đủ (tự tạo)
+
+    // Getters and Setters (tự tạo)
+
+    public Integer getViewCount() { return viewCount == null ? 0 : viewCount; }
+    public void setViewCount(Integer viewCount) { this.viewCount = viewCount; }
+    // ... (Các getters/setters khác)
+}

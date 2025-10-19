@@ -1,0 +1,270 @@
+/* style.css - upgraded with left & right sidebars, responsive, refined visuals */
+
+/* Colors & variables */
+:root{
+  --primary: #3d7fd9;
+  --accent: #73c8a9;
+  --deep: #233a5d;
+  --muted: #6c757d;
+  --bg: #f4f6fb;
+  --card: #ffffff;
+  --shadow: 0 8px 30px rgba(15,23,42,0.06);
+  --radius: 10px;
+  --max-width: 1200px;
+}
+
+/* Reset */
+*{box-sizing:border-box}
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: var(--bg);
+  margin: 0;
+  padding: 0;
+  color: #16202a;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* Page wrapper */
+.page-wrap{
+  max-width: var(--max-width);
+  margin: 24px auto;
+  padding: 0 16px;
+}
+
+/* Header kept minimal (your header.jsp can style inside) */
+.site-header {
+  border-radius: 8px;
+}
+
+/* Layout grid: left sidebar - main - right sidebar */
+.layout {
+  display: grid;
+  grid-template-columns: 260px 1fr 320px;
+  gap: 18px;
+  align-items: start;
+  margin-top: 18px;
+}
+
+/* Container card */
+.container {
+  background: var(--card);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+  padding: 20px;
+}
+
+/* Sidebar styles (common) */
+.sidebar {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid rgba(15,23,42,0.04);
+  padding: 14px;
+  box-shadow: 0 6px 18px rgba(15,23,42,0.04);
+}
+.sidebar.sticky {
+  position: sticky;
+  top: 20px;
+}
+
+/* LEFT SIDEBAR */
+.left-sidebar .search-box {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.left-sidebar .search-box input {
+  flex: 1;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #e6eef9;
+  background: #fbfdff;
+  outline: none;
+}
+.left-sidebar .search-box button {
+  background: linear-gradient(45deg,var(--primary),var(--accent));
+  color: #fff;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.left-sidebar .category-list {
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.left-sidebar .cat-btn {
+  display:block;
+  padding:8px 10px;
+  border-radius:8px;
+  text-decoration:none;
+  color: var(--deep);
+  background: linear-gradient(180deg,#fff,#fbfdff);
+  border:1px solid rgba(15,23,42,0.03);
+  font-weight:600;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.left-sidebar .cat-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 30px rgba(13,110,253,0.06);
+}
+
+/* MAIN content */
+.main {
+  min-height: 300px;
+}
+.main .main-title {
+  color: var(--deep);
+  text-align: left;
+  padding-bottom: 8px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  margin: 0 0 12px 0;
+}
+.news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+.news-card {
+  background: linear-gradient(180deg,#f7fbff,#f3f8ff);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(15,23,42,0.04);
+  transition: transform .18s ease, box-shadow .18s ease;
+}
+.news-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 22px 50px rgba(12,30,80,0.08);
+}
+.news-card .thumb {
+  width:100%;
+  height:140px;
+  overflow:hidden;
+  background:#eaeffb;
+}
+.news-card .thumb img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.news-card .meta {
+  padding: 12px;
+}
+.news-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #244f78;
+  margin-bottom: 6px;
+  min-height:44px;
+}
+.view-count, .date {
+  display:inline-block;
+  background:#e9eefa;
+  color:var(--muted);
+  font-size:0.9rem;
+  padding: 4px 8px;
+  border-radius: 12px;
+  margin-right: 8px;
+}
+
+/* RIGHT SIDEBAR */
+.right-sidebar .section-title {
+  font-weight:700;
+  color: var(--deep);
+  margin-bottom:8px;
+}
+.right-sidebar .list-block {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.right-sidebar .list-item {
+  display:flex;
+  gap:10px;
+  align-items:center;
+  padding:8px;
+  border-radius:8px;
+  background: linear-gradient(180deg,#fff,#fbfdff);
+  border:1px solid rgba(15,23,42,0.03);
+}
+.right-sidebar .list-item img {
+  width:64px;
+  height:48px;
+  object-fit:cover;
+  border-radius:6px;
+}
+.right-sidebar .list-item .title {
+  font-weight:600;
+  color:#0b2545;
+  font-size:0.95rem;
+}
+
+/* Recent views small thumbnails */
+.recent-views {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.recent-views img {
+  width:60px;
+  height:40px;
+  object-fit:cover;
+  border-radius:6px;
+  border:1px solid rgba(15,23,42,0.04);
+}
+
+/* Forms / buttons */
+.crud-form .form-group input, .crud-form .form-group select, .crud-form .form-group textarea {
+  border-radius: 8px;
+  border: 1px solid #e6eef9;
+  padding: 8px 10px;
+  font-size: 1rem;
+}
+.btn {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(45deg,var(--primary),var(--accent));
+  color:#fff;
+  font-weight:700;
+}
+
+/* Alerts */
+.alert { font-size: 1rem; padding: 8px 12px; border-radius: 8px; margin-top: 12px; }
+.alert.success { background: #e2fbe1; color: #1b8b3b; }
+.alert.error { background: #fde1e1; color: #b81c2a; }
+
+/* Footer space */
+.site-footer { margin-top: 20px; padding: 18px; background: var(--deep); color: #fff; border-radius: 8px; text-align:center; }
+
+/* Mobile responsive: collapse to single column. Sidebars move above/below main and can be toggled */
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+  .left-sidebar, .right-sidebar { order: 0; }
+  .left-sidebar { margin-bottom: 12px; }
+  .right-sidebar { margin-top: 12px; }
+  .sidebar.sticky { position: relative; top: auto; }
+  /* mobile toggle buttons shown inside header or near container */
+  .mobile-toggle { display:flex; gap:8px; align-items:center; margin-bottom:12px; }
+}
+
+/* small screen tweaks */
+@media (max-width: 480px) {
+  .news-card .thumb { height: 160px; }
+  .news-title { font-size: 0.98rem; }
+}
+
+/* emoji icons like before */
+.icon-fire::before { content: "🔥 "; margin-right: 4px;}
+.icon-new::before { content: "🆕 "; margin-right: 4px;}
+.icon-eye::before { content: "👁️ "; margin-right: 4px;}
+.icon-user::before { content: "👤 "; margin-right: 4px;}
+.icon-calendar::before { content: "📅 "; margin-right: 4px;}
+.icon-mail::before { content: "✉️ "; margin-right: 4px;}

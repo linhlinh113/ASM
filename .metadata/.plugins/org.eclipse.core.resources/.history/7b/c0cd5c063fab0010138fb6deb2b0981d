@@ -1,0 +1,40 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Danh sách tin tức | ABCNews</title>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" href="assets/css/style.css"/>
+    <link rel="icon" type="image/png" href="assets/img/newsicon.png"/>
+</head>
+<body>
+<jsp:include page="layout/header.jsp"/>
+<div class="container">
+    <h2 class="main-title"><img src="assets/img/newsicon.png" width="32" alt="News"/> Danh sách tin tức theo loại</h2>
+    <!-- Menu loại tin -->
+    <div class="category-menu">
+        <c:forEach var="cat" items="${categoryList}">
+            <a href="NewsListServlet?cat=${cat.id}" class="cat-btn">${cat.name}</a>
+        </c:forEach>
+    </div>
+    <!-- Danh sách tin -->
+    <div class="news-list">
+        <c:forEach var="news" items="${newsList}">
+            <div class="news-card">
+                <a href="NewsDetailServlet?id=${news.id}">
+                    <img src="${news.image}" alt="${news.title}" class="news-img"/>
+                    <div class="news-title">${news.title}</div>
+                </a>
+                <span class="date"><span class="icon-calendar"></span> <c:out value="${news.postedDate}"/></span>
+                <span class="view-count"><span class="icon-eye"></span> ${news.viewCount}</span>
+            </div>
+        </c:forEach>
+    </div>
+    <c:if test="${empty newsList}">
+        <div class="alert error">Không có bản tin nào thuộc loại này!</div>
+    </c:if>
+</div>
+<jsp:include page="layout/footer.jsp"/>
+</body>
+</html>

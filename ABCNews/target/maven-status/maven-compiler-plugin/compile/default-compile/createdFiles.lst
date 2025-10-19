@@ -1,0 +1,5 @@
+abcnews\entity\News.class
+abcnews\util\JDBCHelper.class
+abcnews\entity\Newsletter.class
+abcnews\entity\User.class
+com\abcnews\entity\Category.class

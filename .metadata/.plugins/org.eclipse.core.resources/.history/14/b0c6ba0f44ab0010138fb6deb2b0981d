@@ -1,0 +1,27 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<c:set var="ctx" value="${pageContext.request.contextPath}" />
+<div class="sidebar left-sidebar sticky">
+    <div class="search-box">
+        <form action="${ctx}/SearchServlet" method="get" style="display:flex;width:100%;">
+            <input type="text" name="q" placeholder="Tìm tin..." aria-label="Tìm tin"/>
+            <button type="submit" title="Tìm">Tìm</button>
+        </form>
+    </div>
+
+    <h4 style="margin:8px 0 10px 0;color:#244f78;font-weight:700;">Danh mục</h4>
+    <div class="category-list">
+        <c:forEach var="cat" items="${categoryList}">
+            <a class="cat-btn" href="${ctx}/NewsListServlet?cat=${cat.id}">${cat.name}</a>
+        </c:forEach>
+    </div>
+
+    <div style="margin-top:14px;">
+        <h4 style="margin:8px 0;color:#244f78;font-weight:700;">Liên kết nhanh</h4>
+        <div class="quick-links">
+            <a href="${ctx}/" class="cat-btn" style="padding:8px 12px;">Trang chủ</a>
+            <a href="${ctx}/login.jsp" class="cat-btn" style="padding:8px 12px;">Đăng nhập</a>
+            <a href="${ctx}/ContactServlet" class="cat-btn" style="padding:8px 12px;">Liên hệ</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,35 @@
+package com.abcnews.servlet;
+
+import com.abcnews.dao.NewsletterDAO;
+import com.abcnews.entity.Newsletter;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+
+@WebServlet("/NewsletterServlet")
+public class NewsletterServlet extends HttpServlet {
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String email = req.getParameter("email");
+        NewsletterDAO dao = new NewsletterDAO();
+        try {
+            Newsletter exist = dao.getByEmail(email);
+            if (exist == null) {
+                Newsletter n = new Newsletter(email, true);
+                dao.insert(n);
+                req.setAttribute("success", "Đăng ký nhận bản tin thành công!");
+            } else {
+                req.setAttribute("error", "Email đã đăng ký trước đó!");
+            }
+        } catch (Exception e) {
+            req.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
+        }
+        req.getRequestDispatcher("HomeServlet").forward(req, resp);
+    }
+}

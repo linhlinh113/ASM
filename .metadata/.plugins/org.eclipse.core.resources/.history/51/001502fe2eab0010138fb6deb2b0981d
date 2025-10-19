@@ -1,0 +1,5 @@
+package abcnews.util;
+
+public class MailHelper {
+
+}

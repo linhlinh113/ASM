@@ -1,0 +1,67 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ABCNews - Trang chủ</title>
+    <meta charset="UTF-8"/>
+    <link rel="stylesheet" href="assets/css/style.css"/>
+    <link rel="icon" type="image/png" href="assets/img/newsicon.png"/>
+</head>
+<body>
+<jsp:include page="layout/header.jsp"/>
+<div class="container">
+    <h2 class="main-title"><img src="assets/img/newsicon.png" width="32" alt="News"/> Tin tức nổi bật hôm nay</h2>
+    <!-- Menu loại tin -->
+    <div class="category-menu">
+        <c:forEach var="cat" items="${categoryList}">
+            <a href="NewsListServlet?cat=${cat.id}" class="cat-btn">${cat.name}</a>
+        </c:forEach>
+    </div>
+    <!-- 5 bản tin hot nhất -->
+    <section class="hot-news">
+        <h3><span class="icon-fire"></span> Bản tin hot nhất</h3>
+        <div class="news-list">
+            <c:forEach var="news" items="${hotList}">
+                <div class="news-card">
+                    <a href="NewsDetailServlet?id=${news.id}">
+                        <img src="${news.image}" alt="${news.title}" class="news-img"/>
+                        <div class="news-title">${news.title}</div>
+                    </a>
+                    <span class="view-count"><span class="icon-eye"></span> ${news.viewCount}</span>
+                </div>
+            </c:forEach>
+        </div>
+    </section>
+    <!-- 5 bản tin mới nhất -->
+    <section class="new-news">
+        <h3><span class="icon-new"></span> Bản tin mới nhất</h3>
+        <div class="news-list">
+            <c:forEach var="news" items="${newestList}">
+                <div class="news-card">
+                    <a href="NewsDetailServlet?id=${news.id}">
+                        <img src="${news.image}" alt="${news.title}" class="news-img"/>
+                        <div class="news-title">${news.title}</div>
+                    </a>
+                    <span class="date"><span class="icon-calendar"></span> <c:out value="${news.postedDate}"/></span>
+                </div>
+            </c:forEach>
+        </div>
+    </section>
+    <!-- Đăng ký nhận bản tin -->
+    <section>
+        <form action="NewsletterServlet" method="post" class="newsletter-form">
+            <input type="email" name="email" placeholder="Nhập email để nhận bản tin mới" required>
+            <button type="submit" class="register-btn"><span class="icon-mail"></span> Đăng ký nhận tin</button>
+        </form>
+        <c:if test="${not empty success}">
+            <div class="alert success">${success}</div>
+        </c:if>
+        <c:if test="${not empty error}">
+            <div class="alert error">${error}</div>
+        </c:if>
+    </section>
+</div>
+<jsp:include page="layout/footer.jsp"/>
+</body>
+</html>

@@ -1,0 +1,82 @@
+// Thêm vào NewsDAO.java (các phương thức getHotNews, getNewestNews, getHomeNews với Approved=1)
+public List<News> getHotNews(int limit) throws Exception {
+    List<News> list = new ArrayList<>();
+    String sql = "SELECT TOP (?) * FROM NEWS WHERE Approved = 1 ORDER BY ViewCount DESC"; // Thêm Approved=1
+    try (Connection con = DBUtil.getConnection();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setInt(1, limit);
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                News n = new News();
+                n.setId(rs.getString("Id"));
+                n.setTitle(rs.getString("Title"));
+                n.setContent(rs.getString("Content"));
+                n.setImage(rs.getString("Image"));
+                n.setPostedDate(rs.getDate("PostedDate"));
+                n.setAuthor(rs.getString("Author"));
+                n.setViewCount(rs.getInt("ViewCount"));
+                n.setCategoryId(rs.getString("CategoryId"));
+                n.setHome(rs.getBoolean("Home"));
+                n.setApproved(rs.getBoolean("Approved"));
+                list.add(n);
+            }
+        }
+    } catch (SQLException e) {
+        throw new Exception("Lỗi khi lấy tin hot: " + e.getMessage());
+    }
+    return list;
+}
+
+public List<News> getNewestNews(int limit) throws Exception {
+    List<News> list = new ArrayList<>();
+    String sql = "SELECT TOP (?) * FROM NEWS WHERE Approved = 1 ORDER BY PostedDate DESC"; // Thêm Approved=1
+    try (Connection con = DBUtil.getConnection();
+         PreparedStatement ps = con.prepareStatement(sql)) {
+        ps.setInt(1, limit);
+        try (ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                News n = new News();
+                n.setId(rs.getString("Id"));
+                n.setTitle(rs.getString("Title"));
+                n.setContent(rs.getString("Content"));
+                n.setImage(rs.getString("Image"));
+                n.setPostedDate(rs.getDate("PostedDate"));
+                n.setAuthor(rs.getString("Author"));
+                n.setViewCount(rs.getInt("ViewCount"));
+                n.setCategoryId(rs.getString("CategoryId"));
+                n.setHome(rs.getBoolean("Home"));
+                n.setApproved(rs.getBoolean("Approved"));
+                list.add(n);
+            }
+        }
+    } catch (SQLException e) {
+        throw new Exception("Lỗi khi lấy tin mới: " + e.getMessage());
+    }
+    return list;
+}
+
+public List<News> getHomeNews() throws Exception {
+    List<News> list = new ArrayList<>();
+    String sql = "SELECT * FROM NEWS WHERE Home = 1 AND Approved = 1 ORDER BY PostedDate DESC"; // Thêm Approved=1
+    try (Connection con = DBUtil.getConnection();
+         PreparedStatement ps = con.prepareStatement(sql);
+         ResultSet rs = ps.executeQuery()) {
+        while (rs.next()) {
+            News n = new News();
+            n.setId(rs.getString("Id"));
+            n.setTitle(rs.getString("Title"));
+            n.setContent(rs.getString("Content"));
+            n.setImage(rs.getString("Image"));
+            n.setPostedDate(rs.getDate("PostedDate"));
+            n.setAuthor(rs.getString("Author"));
+            n.setViewCount(rs.getInt("ViewCount"));
+            n.setCategoryId(rs.getString("CategoryId"));
+            n.setHome(rs.getBoolean("Home"));
+            n.setApproved(rs.getBoolean("Approved"));
+            list.add(n);
+        }
+    } catch (SQLException e) {
+        throw new Exception("Lỗi khi lấy tin trang chủ: " + e.getMessage());
+    }
+    return list;
+}
