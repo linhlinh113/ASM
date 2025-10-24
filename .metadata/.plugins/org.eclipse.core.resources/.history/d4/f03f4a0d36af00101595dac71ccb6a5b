@@ -1,0 +1,82 @@
+package com.abcnews.filter;
+
+import com.abcnews.entity.User;
+
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.annotation.WebFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
+import java.io.IOException;
+
+@WebFilter(urlPatterns = {
+    "/AdminCategoryServlet", 
+    "/AdminNewsServlet", 
+    "/AdminUserServlet", 
+    "/AdminNewsletterServlet", 
+    "/ReporterNewsServlet",
+    "/manage/*" // Bảo vệ cả các file JSP trong thư mục manage
+})
+public class AuthFilter implements Filter {
+
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) 
+            throws IOException, ServletException {
+        
+        HttpServletRequest req = (HttpServletRequest) request;
+        HttpServletResponse resp = (HttpServletResponse) response;
+        HttpSession session = req.getSession(false); // false = không tạo session mới
+
+        String loginURI = req.getContextPath() + "/login.jsp";
+        String loginServletURI = req.getContextPath() + "/LoginServlet";
+
+        User user = (session != null) ? (User) session.getAttribute("user") : null;
+        
+        // Lấy URI hiện tại
+        String uri = req.getRequestURI();
+
+        // 1. Nếu chưa đăng nhập
+        if (user == null) {
+            // Nếu request không phải là trang login thì redirect về trang login
+            if (!uri.equals(loginURI) && !uri.equals(loginServletURI)) {
+                System.out.println("AuthFilter: No user in session. Redirecting to login.");
+                resp.sendRedirect(loginURI + "?error=Vui lòng đăng nhập để tiếp tục!");
+                return; 
+            }
+        
+        // 2. Nếu đã đăng nhập
+        } else {
+            boolean isAdmin = user.isRole();
+            
+            // 2.1. Nếu là Admin (được truy cập mọi thứ)
+            if (isAdmin) {
+                // Admin được đi tiếp
+                chain.doFilter(request, response);
+                return;
+            }
+            
+            // 2.2. Nếu là Reporter (chỉ được truy cập 1 số trang)
+            if (!isAdmin) {
+                if (uri.endsWith("/ReporterNewsServlet") || uri.endsWith("/manage/reporter_home.jsp") || uri.endsWith("/manage/news_crud_reporter.jsp") || uri.endsWith("/LogoutServlet")) {
+                    // Reporter được đi tiếp
+                    chain.doFilter(request, response);
+                    return;
+                } else {
+                    // Reporter cố truy cập trang Admin (vd: /AdminUserServlet)
+                    System.out.println("AuthFilter: Reporter access denied for: " + uri);
+                    req.setAttribute("error", "Bạn không có quyền truy cập chức năng này!");
+                    req.getRequestDispatcher("/manage/reporter_home.jsp").forward(req, resp);
+                    return;
+                }
+            }
+        }
+        
+        // Cho qua các trường hợp còn lại (như xử lý trang login)
+        chain.doFilter(request, response);
+    }
+}

@@ -1,0 +1,66 @@
+package com.abcnews.util;
+
+// ===>>> THAY ĐỔI IMPORT: Dùng thư viện Spring Security <<<===
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
+public class PasswordUtil {
+
+    // Tạo một instance của BCryptPasswordEncoder
+    // Tham số 12 là "strength" (độ mạnh mã hóa)
+    private static final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
+
+    /**
+     * Mã hóa mật khẩu văn bản thuần bằng Spring Security BCrypt
+     * @param plainPassword Mật khẩu chưa mã hóa
+     * @return Mật khẩu đã được hash
+     */
+    public static String hashPassword(String plainPassword) {
+        if (plainPassword == null || plainPassword.isEmpty()) {
+            return null;
+        }
+        // Dùng phương thức encode() của Spring
+        return passwordEncoder.encode(plainPassword);
+    }
+
+    /**
+     * Kiểm tra mật khẩu người dùng nhập có khớp với mật khẩu đã hash không
+     * @param plainPassword Mật khẩu người dùng nhập (chưa mã hóa)
+     * @param hashedPassword Mật khẩu đã hash lấy từ DB
+     * @return true nếu khớp, false nếu không
+     */
+    public static boolean checkPassword(String plainPassword, String hashedPassword) {
+        // Không cần dòng test cũ nữa vì Spring Security ổn định hơn
+
+        if (plainPassword == null || hashedPassword == null || hashedPassword.isEmpty()) {
+            System.out.println("PasswordUtil (Spring): Input không hợp lệ (null hoặc empty)");
+            return false;
+        }
+
+        try {
+            // Dùng phương thức matches() của Spring để so sánh
+            boolean result = passwordEncoder.matches(plainPassword, hashedPassword);
+            System.out.println("PasswordUtil (Spring): Kết quả matches(): " + result); // Log kết quả
+            return result;
+        } catch (Exception e) {
+            // Lỗi này ít khi xảy ra với Spring Security trừ khi hash quá yếu hoặc sai định dạng
+            System.err.println("PasswordUtil (Spring): Lỗi khi gọi matches(): " + e.getMessage());
+            e.printStackTrace(); // In chi tiết lỗi
+            return false;
+        }
+    }
+
+    /*
+     * (Không bắt buộc) Hàm main để test nhanh (chạy như Java Application)
+     * public static void main(String[] args) {
+     * String pass = "123";
+     * String hash = hashPassword(pass);
+     * System.out.println("Hash của '" + pass + "' là: " + hash);
+     * System.out.println("Kiểm tra lại với '123': " + checkPassword("123", hash));
+     * System.out.println("Kiểm tra với '1234': " + checkPassword("1234", hash));
+     *
+     * // Test với hash cũ (từ jBCrypt) - VẪN NÊN HOẠT ĐỘNG!
+     * String oldHash = "$2a$12$E.mV..VqQY/A06mAL.S/XO.jseqb0G.JOkfXUtS94ke83.B0sWlFm";
+     * System.out.println("Kiểm tra hash CŨ ('$2a$12$...') với '123': " + checkPassword("123", oldHash));
+     * }
+     */
+}

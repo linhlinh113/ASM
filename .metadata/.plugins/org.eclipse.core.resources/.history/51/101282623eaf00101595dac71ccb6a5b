@@ -1,0 +1,190 @@
+package com.abcnews.dao;
+
+import com.abcnews.entity.User;
+import com.abcnews.util.DBUtil;
+import com.abcnews.util.PasswordUtil; // Import lớp tiện ích
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class UserDAO {
+
+    /**
+     * Kiểm tra đăng nhập bằng BCrypt (VỚI LOGGING)
+     */
+    public User login(String id, String password) throws Exception {
+        System.out.println("--- Bắt đầu UserDAO.login() ---"); // LOG 1
+        System.out.println("ID người dùng nhập: " + id); // LOG 2
+
+        // 1. Lấy user theo ID trước
+        User user = this.getById(id);
+
+        if (user != null) {
+            System.out.println("Tìm thấy user: " + user.getId() + " | Fullname: " + user.getFullname()); // LOG 3
+            String hashedPassword = user.getPassword(); // Lấy pass đã hash từ DB
+            System.out.println("Mật khẩu Hash từ DB: " + hashedPassword); // LOG 4
+
+            // 3. Dùng BCrypt để kiểm tra
+            boolean passwordMatch = PasswordUtil.checkPassword(password, hashedPassword);
+            System.out.println("Kết quả checkPassword(): " + passwordMatch); // LOG 5
+
+            if (passwordMatch) {
+                System.out.println("--- Đăng nhập THÀNH CÔNG ---"); // LOG 6
+                return user; // Mật khẩu khớp, trả về user
+            } else {
+                System.out.println("--- Lỗi: Mật khẩu KHÔNG khớp ---"); // LOG 7
+            }
+        } else {
+            System.out.println("--- Lỗi: Không tìm thấy user với ID: " + id + " ---"); // LOG 8
+        }
+
+        // Không tìm thấy user hoặc sai mật khẩu
+        System.out.println("--- Đăng nhập THẤT BẠI ---"); // LOG 9
+        return null;
+    }
+
+    /**
+     * Lấy tất cả người dùng
+     */
+    public List<User> getAll() throws Exception {
+        List<User> list = new ArrayList<>();
+        String sql = "SELECT * FROM USERS";
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapUser(rs));
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Lấy người dùng theo ID
+     */
+    public User getById(String id) throws Exception {
+        String sql = "SELECT * FROM USERS WHERE Id = ?";
+        try (Connection con = DBUtil.getConnection(); // LOG: Kiểm tra kết nối CSDL ở đây
+             PreparedStatement ps = con.prepareStatement(sql)) {
+             System.out.println("UserDAO.getById(): Đã kết nối CSDL thành công để lấy user ID: " + id); // LOG Connection
+            ps.setString(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapUser(rs);
+                }
+            }
+        } catch (Exception e) {
+             System.err.println("UserDAO.getById(): LỖI KẾT NỐI hoặc LỖI TRUY VẤN: " + e.getMessage()); // LOG ERROR
+             throw e; // Ném lại lỗi
+        }
+        return null;
+    }
+
+    /**
+     * Thêm người dùng mới (Tự động hash mật khẩu)
+     */
+    public boolean insert(User user) throws Exception {
+        String sql = "INSERT INTO USERS (Id, Password, Fullname, Birthday, Gender, Mobile, Email, Role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            String hashedPassword = PasswordUtil.hashPassword(user.getPassword());
+            System.out.println("UserDAO.insert(): Mật khẩu đã hash cho user " + user.getId() + ": " + hashedPassword); // LOG HASH
+
+            ps.setString(1, user.getId());
+            ps.setString(2, hashedPassword);
+            ps.setString(3, user.getFullname());
+            if (user.getBirthday() != null) {
+                ps.setDate(4, new java.sql.Date(user.getBirthday().getTime()));
+            } else {
+                ps.setNull(4, Types.DATE);
+            }
+            ps.setBoolean(5, user.isGender());
+            ps.setString(6, user.getMobile());
+            ps.setString(7, user.getEmail());
+            ps.setBoolean(8, user.isRole());
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Cập nhật người dùng (Tự động hash mật khẩu mới nếu có)
+     */
+    public boolean update(User user) throws Exception {
+        User oldUser = getById(user.getId());
+        if (oldUser == null) {
+            throw new Exception("Không tìm thấy người dùng để cập nhật: " + user.getId());
+        }
+        String passwordToSave = oldUser.getPassword();
+
+        // Kiểm tra xem mật khẩu có được cung cấp và có khác mật khẩu cũ không
+        // Chú ý: user.getPassword() bây giờ có thể là plain text hoặc hash cũ
+        if (user.getPassword() != null && !user.getPassword().isEmpty() && !PasswordUtil.checkPassword(user.getPassword(), oldUser.getPassword()))
+        {
+             // Nếu người dùng nhập mật khẩu MỚI (không phải hash cũ), thì hash nó
+             if (!user.getPassword().startsWith("$2a$")) {
+                 System.out.println("UserDAO.update(): Người dùng " + user.getId() + " đang đổi mật khẩu."); // LOG CHANGE PASS
+                 passwordToSave = PasswordUtil.hashPassword(user.getPassword());
+                 System.out.println("UserDAO.update(): Hash mới: " + passwordToSave); // LOG NEW HASH
+             } else {
+                 // Trường hợp này ít xảy ra, nhưng nếu người dùng vô tình dán hash vào ô pass thì giữ nguyên
+                 passwordToSave = user.getPassword();
+             }
+        }
+
+
+        String sql = "UPDATE USERS SET Password=?, Fullname=?, Birthday=?, Gender=?, Mobile=?, Email=?, Role=? WHERE Id=?";
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, passwordToSave);
+            ps.setString(2, user.getFullname());
+            if (user.getBirthday() != null) {
+                ps.setDate(3, new java.sql.Date(user.getBirthday().getTime()));
+            } else {
+                ps.setNull(3, Types.DATE);
+            }
+            ps.setBoolean(4, user.isGender());
+            ps.setString(5, user.getMobile());
+            ps.setString(6, user.getEmail());
+            ps.setBoolean(7, user.isRole());
+            ps.setString(8, user.getId());
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Xóa người dùng
+     */
+    public boolean delete(String id) throws Exception {
+        // Kiểm tra xem có bài viết nào của user này không trước khi xóa
+        NewsDAO newsDao = new NewsDAO(); // Cần NewsDAO để kiểm tra
+        if (!newsDao.getByAuthor(id).isEmpty()) {
+            throw new Exception("Không thể xóa người dùng này vì họ vẫn còn bài viết.");
+        }
+
+        String sql = "DELETE FROM USERS WHERE Id=?";
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, id);
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Hàm tiện ích để map ResultSet -> User
+     */
+    private User mapUser(ResultSet rs) throws SQLException {
+        User user = new User();
+        user.setId(rs.getString("Id"));
+        user.setPassword(rs.getString("Password")); // Lấy pass đã hash
+        user.setFullname(rs.getString("Fullname"));
+        user.setBirthday(rs.getDate("Birthday"));
+        user.setGender(rs.getBoolean("Gender"));
+        user.setMobile(rs.getString("Mobile"));
+        user.setEmail(rs.getString("Email"));
+        user.setRole(rs.getBoolean("Role"));
+        return user;
+    }
+}

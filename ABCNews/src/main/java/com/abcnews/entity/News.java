@@ -1,20 +1,28 @@
 package com.abcnews.entity;
 
+import java.io.Serializable;
 import java.util.Date;
 
-public class News {
+public class News implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private String id;
     private String title;
     private String content;
     private String image;
     private Date postedDate;
-    private String author;
+    private String author; // Mã phóng viên
     private int viewCount;
     private String categoryId;
-    private boolean home;
-    private Boolean approved; // Thêm trường Approved, dùng Boolean để null được
+    private boolean home; // Có hiển thị trang chủ không
+    
+    // Dùng Boolean (object) thay vì boolean (primitive)
+    // để có thể nhận giá trị null nếu cần
+    private Boolean approved; // Trạng thái duyệt
 
-    public News() {}
+    // Constructor
+    public News() {
+    }
 
     public News(String id, String title, String content, String image, Date postedDate, String author, int viewCount, String categoryId, boolean home, Boolean approved) {
         this.id = id;
@@ -29,63 +37,83 @@ public class News {
         this.approved = approved;
     }
 
+    // Getters and Setters
     public String getId() {
         return id;
     }
+
     public void setId(String id) {
         this.id = id;
     }
+
     public String getTitle() {
         return title;
     }
+
     public void setTitle(String title) {
         this.title = title;
     }
+
     public String getContent() {
         return content;
     }
+
     public void setContent(String content) {
         this.content = content;
     }
+
     public String getImage() {
         return image;
     }
+
     public void setImage(String image) {
         this.image = image;
     }
+
     public Date getPostedDate() {
         return postedDate;
     }
+
     public void setPostedDate(Date postedDate) {
         this.postedDate = postedDate;
     }
+
     public String getAuthor() {
         return author;
     }
+
     public void setAuthor(String author) {
         this.author = author;
     }
+
     public int getViewCount() {
         return viewCount;
     }
+
     public void setViewCount(int viewCount) {
         this.viewCount = viewCount;
     }
+
     public String getCategoryId() {
         return categoryId;
     }
+
     public void setCategoryId(String categoryId) {
         this.categoryId = categoryId;
     }
+
     public boolean isHome() {
         return home;
     }
+
     public void setHome(boolean home) {
         this.home = home;
     }
-    public Boolean isApproved() {
+
+    public Boolean getApproved() {
         return approved;
-    } // Sử dụng Boolean để cho phép null
+    }
+
     public void setApproved(Boolean approved) {
         this.approved = approved;
     }

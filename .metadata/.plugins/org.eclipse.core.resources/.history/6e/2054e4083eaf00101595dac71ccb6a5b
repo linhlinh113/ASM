@@ -1,0 +1,50 @@
+package com.abcnews.util;
+
+import org.mindrot.jbcrypt.BCrypt;
+
+public class PasswordUtil {
+
+    /**
+     * Mã hóa mật khẩu văn bản thuần
+     * @param plainPassword Mật khẩu chưa mã hóa
+     * @return Mật khẩu đã được hash bằng BCrypt
+     */
+    public static String hashPassword(String plainPassword) {
+        if (plainPassword == null || plainPassword.isEmpty()) {
+            return null;
+        }
+        // Tham số 12 là "work factor" (độ phức tạp),
+        // 10-12 là giá trị phổ biến
+        return BCrypt.hashpw(plainPassword, BCrypt.gensalt(12));
+    }
+
+    /**
+     * Kiểm tra mật khẩu người dùng nhập vào có khớp với mật khẩu đã hash trong DB không
+     * @param plainPassword Mật khẩu người dùng nhập (chưa mã hóa)
+     * @param hashedPassword Mật khẩu đã hash lấy từ DB
+     * @return true nếu khớp, false nếu không
+     */
+    public static boolean checkPassword(String plainPassword, String hashedPassword) {
+        // ===>>> ĐÃ THÊM TEST CASE NÀY <<<===
+        System.out.println("PasswordUtil TEST: checkpw('123', '$2a$12$E.mV..VqQY/A06mAL.S/XO.jseqb0G.JOkfXUtS94ke83.B0sWlFm') = "
+                           + BCrypt.checkpw("123", "$2a$12$E.mV..VqQY/A06mAL.S/XO.jseqb0G.JOkfXUtS94ke83.B0sWlFm"));
+        // ===>>> ======================== <<<===
+
+        if (plainPassword == null || hashedPassword == null || hashedPassword.isEmpty()) {
+            System.out.println("PasswordUtil: Input không hợp lệ (null hoặc empty)"); // Thêm log kiểm tra input
+            return false;
+        }
+
+        try {
+             // BCrypt.checkpw sẽ tự xử lý
+            boolean result = BCrypt.checkpw(plainPassword, hashedPassword);
+            System.out.println("PasswordUtil: Kết quả BCrypt.checkpw thực tế: " + result); // Thêm log kết quả thực tế
+            return result;
+        } catch (Exception e) {
+            // Xử lý lỗi nếu hashedPassword không phải là định dạng BCrypt
+            System.err.println("PasswordUtil: Lỗi khi gọi BCrypt.checkpw: " + e.getMessage());
+            e.printStackTrace(); // In chi tiết lỗi
+            return false;
+        }
+    }
+}

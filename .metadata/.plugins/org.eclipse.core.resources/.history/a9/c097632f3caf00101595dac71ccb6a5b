@@ -1,0 +1,159 @@
+package com.abcnews.dao;
+
+import com.abcnews.entity.User;
+import com.abcnews.util.DBUtil;
+import com.abcnews.util.PasswordUtil; // Import lớp tiện ích
+
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+
+public class UserDAO {
+
+    /**
+     * Kiểm tra đăng nhập bằng BCrypt
+     */
+    public User login(String id, String password) throws Exception {
+        // 1. Lấy user theo ID trước
+        User user = this.getById(id);
+        
+        // 2. Nếu tìm thấy user
+        if (user != null) {
+            String hashedPassword = user.getPassword(); // Lấy pass đã hash từ DB
+            
+            // 3. Dùng BCrypt để kiểm tra
+            if (PasswordUtil.checkPassword(password, hashedPassword)) {
+                return user; // Mật khẩu khớp, trả về user
+            }
+        }
+        
+        // Không tìm thấy user hoặc sai mật khẩu
+        return null; 
+    }
+
+    /**
+     * Lấy tất cả người dùng
+     */
+    public List<User> getAll() throws Exception {
+        List<User> list = new ArrayList<>();
+        String sql = "SELECT * FROM USERS";
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapUser(rs));
+            }
+        }
+        return list;
+    }
+
+    /**
+     * Lấy người dùng theo ID
+     */
+    public User getById(String id) throws Exception {
+        String sql = "SELECT * FROM USERS WHERE Id = ?";
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapUser(rs);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Thêm người dùng mới (Tự động hash mật khẩu)
+     */
+    public boolean insert(User user) throws Exception {
+        String sql = "INSERT INTO USERS (Id, Password, Fullname, Birthday, Gender, Mobile, Email, Role) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            // MÃ HÓA MẬT KHẨU TRƯỚC KHI LƯU
+            String hashedPassword = PasswordUtil.hashPassword(user.getPassword());
+            
+            ps.setString(1, user.getId());
+            ps.setString(2, hashedPassword); // Lưu mật khẩu đã hash
+            ps.setString(3, user.getFullname());
+            if (user.getBirthday() != null) {
+                ps.setDate(4, new java.sql.Date(user.getBirthday().getTime()));
+            } else {
+                ps.setNull(4, Types.DATE);
+            }
+            ps.setBoolean(5, user.isGender());
+            ps.setString(6, user.getMobile());
+            ps.setString(7, user.getEmail());
+            ps.setBoolean(8, user.isRole());
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Cập nhật người dùng (Tự động hash mật khẩu mới nếu có)
+     * LƯU Ý: Servlet cần xử lý việc người dùng có muốn đổi pass hay không.
+     * Nếu người dùng không nhập pass mới, ta nên giữ nguyên pass cũ.
+     * Tạm thời, hàm này sẽ hash bất cứ thứ gì trong user.getPassword()
+     */
+    public boolean update(User user) throws Exception {
+        // Lấy mật khẩu hiện tại từ DB
+        User oldUser = getById(user.getId());
+        String passwordToSave = oldUser.getPassword(); // Mặc định giữ pass cũ (đã hash)
+        
+        // Nếu mật khẩu mới được cung cấp VÀ nó chưa phải là hash
+        // (logic đơn giản: nếu nó không bắt đầu bằng $2a$)
+        if (user.getPassword() != null && !user.getPassword().startsWith("$2a$")) {
+            // Hash mật khẩu mới
+            passwordToSave = PasswordUtil.hashPassword(user.getPassword());
+        }
+
+        String sql = "UPDATE USERS SET Password=?, Fullname=?, Birthday=?, Gender=?, Mobile=?, Email=?, Role=? WHERE Id=?";
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            
+            ps.setString(1, passwordToSave); // Lưu mật khẩu (mới hoặc cũ đã hash)
+            ps.setString(2, user.getFullname());
+            if (user.getBirthday() != null) {
+                ps.setDate(3, new java.sql.Date(user.getBirthday().getTime()));
+            } else {
+                ps.setNull(3, Types.DATE);
+            }
+            ps.setBoolean(4, user.isGender());
+            ps.setString(5, user.getMobile());
+            ps.setString(6, user.getEmail());
+            ps.setBoolean(7, user.isRole());
+            ps.setString(8, user.getId());
+            return ps.executeUpdate() > 0;
+        }
+    }
+
+    /**
+     * Xóa người dùng
+     */
+    public boolean delete(String id) throws Exception {
+        String sql = "DELETE FROM USERS WHERE Id=?";
+        try (Connection con = DBUtil.getConnection();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+            ps.setString(1, id);
+            return ps.executeUpdate() > 0;
+        }
+    }
+    
+    /**
+     * Hàm tiện ích để map ResultSet -> User
+     */
+    private User mapUser(ResultSet rs) throws SQLException {
+        User user = new User();
+        user.setId(rs.getString("Id"));
+        user.setPassword(rs.getString("Password")); // Lấy pass đã hash
+        user.setFullname(rs.getString("Fullname"));
+        user.setBirthday(rs.getDate("Birthday"));
+        user.setGender(rs.getBoolean("Gender"));
+        user.setMobile(rs.getString("Mobile"));
+        user.setEmail(rs.getString("Email"));
+        user.setRole(rs.getBoolean("Role"));
+        return user;
+    }
+}

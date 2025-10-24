@@ -1,0 +1,32 @@
+package com.abcnews.util;
+
+import org.mindrot.jbcrypt.BCrypt;
+
+public class PasswordUtil {
+
+    /**
+     * Mã hóa mật khẩu văn bản thuần
+     * @param plainPassword Mật khẩu chưa mã hóa
+     * @return Mật khẩu đã được hash bằng BCrypt
+     */
+    public static String hashPassword(String plainPassword) {
+        // Tham số 12 là "work factor" (độ phức tạp), 
+        // 10-12 là giá trị phổ biến
+        return BCrypt.hashpw(plainPassword, BCrypt.gensalt(12));
+    }
+
+    /**
+     * Kiểm tra mật khẩu người dùng nhập vào có khớp với mật khẩu đã hash trong DB không
+     * @param plainPassword Mật khẩu người dùng nhập (chưa mã hóa)
+     * @param hashedPassword Mật khẩu đã hash lấy từ DB
+     * @return true nếu khớp, false nếu không
+     */
+    public static boolean checkPassword(String plainPassword, String hashedPassword) {
+        if (hashedPassword == null || !hashedPassword.startsWith("$2a$")) {
+            // Xử lý trường hợp mật khẩu trong DB chưa được hash (lỗi cũ)
+            // Hoặc có thể ném ra lỗi
+            return false;
+        }
+        return BCrypt.checkpw(plainPassword, hashedPassword);
+    }
+}

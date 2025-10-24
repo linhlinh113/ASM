@@ -1,55 +1,63 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <c:set var="ctx" value="${pageContext.request.contextPath}" />
-<!DOCTYPE html>
-<html>
-<head>
-    <title>${news.title} - Chi tiết tin tức | ABCNews</title>
-    <meta charset="UTF-8"/>
-    <link rel="stylesheet" href="${ctx}/assets/css/style.css"/>
-    <link rel="icon" type="image/png" href="${ctx}/assets/img/newsicon.png"/>
-</head>
-<body>
-<jsp:include page="/layout/header.jsp"/>
-<div class="page-wrap">
-    <div class="layout">
-        <div id="left-sidebar" class="sidebar left-sidebar sticky">
-            <jsp:include page="/layout/leftSidebar.jsp"/>
-        </div>
 
-        <div class="main">
-            <div class="container">
-                <div class="news-detail">
-                    <h2>${news.title}</h2>
-                    <img src="${news.image}" alt="${news.title}" class="news-detail-img"/>
-                    <p>${news.content}</p>
-                    <div class="meta">
-                        <span class="icon-user"></span> Tác giả: ${news.author}
-                        <span class="icon-calendar"></span> Ngày đăng: <c:out value="${news.postedDate}"/>
-                        <span class="icon-eye"></span> Lượt xem: ${news.viewCount}
+<jsp:include page="/layout/header.jsp">
+    <jsp:param name="title" value="${news.title}"/>
+</jsp:include>
+
+<div class="container" style="margin-top: 15px;">
+    <c:if test="${not empty error}">
+        <div class="alert alert-error">
+            <i class="fa-solid fa-triangle-exclamation"></i> ${error}
+        </div>
+    </c:if>
+</div>
+
+<div class="page-wrap container">
+    <div class="main-layout">
+        
+        <jsp:include page="/layout/left_sidebar.jsp" />
+
+        <main class="main-content">
+            <c:if test="${not empty news}">
+                <article class="news-detail-content">
+                    <h1 class="section-title" style="font-size: 2rem; line-height: 1.4;">${news.title}</h1>
+                    
+                    <div class="news-detail-meta" style="margin-bottom: 20px; color: var(--muted-color); border-bottom: 1px solid var(--border-color); padding-bottom: 15px;">
+                        <span style="margin-right: 15px;"><i class="fa-solid fa-user"></i> ${news.author}</span>
+                        <span style="margin-right: 15px;"><i class="fa-solid fa-calendar-days"></i> ${news.postedDate}</span>
+                        <span><i class="fa-solid fa-eye"></i> ${news.viewCount} lượt xem</span>
                     </div>
-                </div>
+                    
+                    <img src="${news.image}" alt="${news.title}" style="width: 100%; border-radius: var(--radius-md); margin-bottom: 20px;">
+                    
+                    <div class="news-content-body" style="font-size: 1.1rem; line-height: 1.7;">
+                        <p>${news.content}</p>
+                        </div>
+                </article>
 
-                <div class="related-news" style="margin-top:18px;">
-                    <h3><span class="icon-link"></span> Bản tin cùng loại</h3>
-                    <ul>
-                        <c:forEach var="relNews" items="${relatedList}">
-                            <li>
-                                <a href="${ctx}/NewsDetailServlet?id=${relNews.id}">${relNews.title}</a>
-                            </li>
+                <section class="related-news" style="margin-top: 30px;">
+                    <h2 class="section-title" style="font-size: 1.5rem;">
+                        <i class="fa-solid fa-paperclip"></i> Tin liên quan
+                    </h2>
+                    <div class="list-block">
+                        <c:forEach var="rel" items="${relatedList}">
+                            <a href="${ctx}/NewsDetailServlet?id=${rel.id}" class="list-item">
+                                <img src="${rel.image}" alt="${rel.title}">
+                                <div class="list-item-content">
+                                    <h5 class="list-item-title">${rel.title}</h5>
+                                </div>
+                            </a>
                         </c:forEach>
-                    </ul>
-                </div>
-            </div>
-        </div>
+                    </div>
+                </section>
+            </c:if>
+        </main>
 
-        <aside id="right-sidebar" class="sidebar right-sidebar sticky">
-            <jsp:include page="/layout/rightSidebar.jsp"/>
-        </aside>
+        <jsp:include page="/layout/right_sidebar.jsp" />
+        
     </div>
 </div>
 
-<jsp:include page="/layout/footer.jsp"/>
-<script src="${ctx}/assets/js/sidebar.js"></script>
-</body>
-</html>
+<jsp:include page="/layout/footer.jsp" />

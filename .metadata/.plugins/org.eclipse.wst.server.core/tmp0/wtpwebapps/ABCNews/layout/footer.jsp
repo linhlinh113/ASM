@@ -1,6 +1,22 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<div class="footer-bar" style="background:#233a5d;color:#fff;text-align:center;padding:20px 0;margin-top:40px;font-size:1.15rem;">
-    <span>&copy; 2025 ABCNews | Thiết kế bởi nhóm ABCNews | <span class="icon-mail"></span> Email: contact@abcnews.com</span>
-    <br>
-    <span style="font-size:0.95rem;">Nền tảng: Java Servlet &amp; JSP, SQL Server</span>
-</div>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+
+<footer class="footer-bar">
+    <div class="container">
+        <p>&copy; 2025 ABCNews | Thiết kế bởi Linh &amp; Bạn</p>
+        <p>
+            <a href="#">Về chúng tôi</a> | 
+            <a href="#">Liên hệ</a> | 
+            <a href="#">Chính sách riêng tư</a>
+        </p>
+        
+        <c:if test="${not empty sessionScope.user}">
+            <p class="footer-user">
+                Đang đăng nhập với tư cách: ${sessionScope.user.fullname} (${sessionScope.user.role ? 'Admin' : 'Reporter'})
+            </p>
+        </c:if>
+    </div>
+</footer>
+
+</body>
+</html>

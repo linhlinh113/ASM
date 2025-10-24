@@ -18,7 +18,7 @@
         <jakarta.servlet.api.version>6.0.0</jakarta.servlet.api.version>
         <jakarta.jsp.api.version>3.1.1</jakarta.jsp.api.version>
         <jakarta.jstl.version>3.0.1</jakarta.jstl.version>
-    </properties>
+        </properties>
 
     <build>
         <plugins>
@@ -41,7 +41,6 @@
     </build>
 
     <dependencies>
-        <!-- JSTL và Servlet như bạn cung cấp -->
         <dependency>
             <groupId>jakarta.servlet.jsp.jstl</groupId>
             <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
@@ -50,19 +49,7 @@
         <dependency>
             <groupId>org.glassfish.web</groupId>
             <artifactId>jakarta.servlet.jsp.jstl</artifactId>
-            <version>3.0.1</version>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-            <version>6.0.0</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.servlet.jsp</groupId>
-            <artifactId>jakarta.servlet.jsp-api</artifactId>
-            <version>3.1.1</version>
-            <scope>provided</scope>
+            <version>${jakarta.jstl.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
@@ -70,15 +57,26 @@
             <version>1.2</version>
         </dependency>
 
-        <!-- Thêm BeanUtils, JavaMail, SQL Server như bạn -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>${jakarta.servlet.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.servlet.jsp</groupId>
+            <artifactId>jakarta.servlet.jsp-api</artifactId>
+            <version>${jakarta.jsp.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
             <version>1.9.3</version>
         </dependency>
         <dependency>
-            <groupId>javax.mail</groupId>
-            <artifactId>mail</artifactId>
+            <groupId>javax.mail</groupId> <artifactId>mail</artifactId>
             <version>1.4.7</version>
         </dependency>
         <dependency>
@@ -87,7 +85,6 @@
             <version>12.2.0.jre11</version>
         </dependency>
 
-        <!-- Thêm Bootstrap và Font Awesome cho giao diện đẹp -->
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>bootstrap</artifactId>
@@ -96,7 +93,6 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>font-awesome</artifactId>
-            <version>6.2.0</version>
-        </dependency>
+            <version>6.2.0</version> </dependency>
     </dependencies>
 </project>

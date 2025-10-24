@@ -1,0 +1,116 @@
+package com.abcnews.servlet;
+
+import com.abcnews.dao.NewsDAO;
+import com.abcnews.entity.News;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+@WebServlet("/NewsDetailServlet")
+public class NewsDetailServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+    
+    // Giới hạn số lượng tin đã xem gần đây
+    private static final int MAX_RECENT_VIEWS = 5;
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
+        resp.setContentType("text/html; charset=UTF-8");
+
+        String id = req.getParameter("id");
+        if (id == null || id.isEmpty()) {
+            resp.sendRedirect("HomeServlet");
+            return;
+        }
+
+        NewsDAO dao = new NewsDAO();
+        try {
+            // 1. Tăng lượt xem (không cần kiểm tra kết quả)
+            dao.incrementViewCount(id);
+
+            // 2. Lấy chi tiết bài báo
+            News news = dao.getById(id);
+
+            if (news == null) {
+                // Nếu tin đã bị xóa hoặc chưa được duyệt
+                req.setAttribute("error", "Không tìm thấy bài báo này hoặc bài báo chưa được duyệt.");
+                req.getRequestDispatcher("/news_detail.jsp").forward(req, resp);
+                return;
+            }
+            
+            // 3. Lấy các tin liên quan (cùng danh mục)
+            // Lọc ra chính nó khỏi danh sách liên quan
+            List<News> relatedList = dao.getByCategory(news.getCategoryId());
+            relatedList.removeIf(n -> n.getId().equals(id)); 
+
+            // 4. Xử lý "Đã xem gần đây" (Yêu cầu mới)
+            HttpSession session = req.getSession();
+            
+            // Dùng LinkedHashMap để duy trì thứ tự xem
+            @SuppressWarnings("unchecked")
+            Map<String, News> recentViewMap = (Map<String, News>) session.getAttribute("recentViewMap");
+            if (recentViewMap == null) {
+                recentViewMap = new LinkedHashMap<>();
+            }
+            
+            // Xóa đi nếu đã có để đưa lên đầu
+            recentViewMap.remove(news.getId());
+            // Thêm vào đầu
+            recentViewMap.put(news.getId(), news);
+            
+            // Giới hạn 5 tin
+            // Chuyển sang List để xóa phần tử cũ nhất nếu vượt quá 5
+            if(recentViewMap.size() > MAX_RECENT_VIEWS) {
+                String firstKey = recentViewMap.keySet().iterator().next();
+                recentViewMap.remove(firstKey);
+            }
+            
+            session.setAttribute("recentViewMap", recentViewMap);
+            
+            // 5. Đẩy dữ liệu sang JSP
+            req.setAttribute("news", news); // Bài báo chính
+            req.setAttribute("relatedList", relatedList); // Danh sách liên quan
+            
+            // Nạp chung dữ liệu cho sidebar (giống HomeServlet)
+            loadSidebarData(req);
+
+            req.getRequestDispatcher("/news_detail.jsp").forward(req, resp);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            req.setAttribute("error", "Lỗi tải chi tiết tin: " + e.getMessage());
+            req.getRequestDispatcher("/news_detail.jsp").forward(req, resp);
+        }
+    }
+    
+    /**
+     * Hàm tiện ích để nạp dữ liệu cho 2 sidebar
+     * (Vì trang chi tiết cũng cần 2 sidebar)
+     */
+    private void loadSidebarData(HttpServletRequest req) {
+        try {
+            // Chỉ nạp nếu chưa có (tối ưu)
+            if (req.getAttribute("categoryList") == null) {
+                req.setAttribute("categoryList", new CategoryDAO().getAll());
+            }
+            if (req.getAttribute("hotList") == null) {
+                req.setAttribute("hotList", new NewsDAO().getHotNews(5));
+            }
+            if (req.getAttribute("newestList") == null) {
+                req.setAttribute("newestList", new NewsDAO().getNewestNews(5));
+            }
+        } catch (Exception e) {
+            System.err.println("Lỗi nạp sidebar data: " + e.getMessage());
+            // Không ném lỗi, chỉ log ra
+        }
+    }
+}
