@@ -1,0 +1,82 @@
+package com.abcnews.servlet;
+
+import com.abcnews.dao.NewsletterDAO;
+import com.abcnews.entity.Newsletter;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet; // Đảm bảo import đúng
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+
+// ===>>> VẪN GIỮ NGUYÊN URL MAPPING MỚI <<<===
+@WebServlet("/subscribe-action")
+// ===>>> ============================ <<<===
+public class NewsletterServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    // ===>>> ĐÃ KHÔI PHỤC LẠI LOGIC XỬ LÝ CSDL <<<===
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println(">>> NewsletterServlet (subscribe-action) doPost CALLED! <<<"); // Log để chắc chắn vào được đây
+        req.setCharacterEncoding("UTF-8");
+        String email = req.getParameter("email");
+
+        // Kiểm tra tính hợp lệ của email
+        if (email == null || email.trim().isEmpty() || !email.contains("@")) {
+            System.out.println("NewsletterServlet: Email không hợp lệ: [" + email + "]"); // Log lỗi
+            req.setAttribute("error", "Email không hợp lệ. Vui lòng thử lại!");
+            req.getRequestDispatcher("/HomeServlet").forward(req, resp);
+            return; // Dừng xử lý
+        }
+
+        // Khởi tạo DAO
+        NewsletterDAO dao = new NewsletterDAO();
+        try {
+            String trimmedEmail = email.trim();
+            System.out.println("NewsletterServlet: Đang kiểm tra email: " + trimmedEmail); // Log email
+            Newsletter exist = dao.getByEmail(trimmedEmail);
+
+            if (exist != null) {
+                System.out.println("NewsletterServlet: Email đã tồn tại."); // Log tồn tại
+                if (!exist.isEnabled()) {
+                    exist.setEnabled(true);
+                    dao.update(exist);
+                    req.setAttribute("success", "Đăng ký nhận bản tin đã được kích hoạt lại!");
+                } else {
+                    req.setAttribute("error", "Email này đã được đăng ký từ trước!");
+                }
+            } else {
+                System.out.println("NewsletterServlet: Email chưa tồn tại, đang thêm mới..."); // Log thêm mới
+                Newsletter n = new Newsletter(trimmedEmail, true);
+                boolean inserted = dao.insert(n); // Kiểm tra kết quả insert
+                if (inserted) {
+                    System.out.println("NewsletterServlet: Thêm email thành công."); // Log thành công
+                    req.setAttribute("success", "Đăng ký nhận bản tin thành công!");
+                } else {
+                     System.out.println("NewsletterServlet: Lỗi insert DAO (không có exception)."); // Log lỗi insert
+                     req.setAttribute("error", "Không thể thêm email vào CSDL.");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("NewsletterServlet: Lỗi Exception: " + e.getMessage()); // Log Exception
+            e.printStackTrace();
+            req.setAttribute("error", "Lỗi hệ thống khi đăng ký: " + e.getMessage());
+        }
+
+        System.out.println("NewsletterServlet: Forwarding về HomeServlet..."); // Log forward
+        req.getRequestDispatcher("/HomeServlet").forward(req, resp);
+    }
+    // ===>>> ======================================= <<<===
+
+
+    // ===>>> PHƯƠNG THỨC doGet VẪN GIỮ NGUYÊN ĐỂ TEST MAPPING <<<===
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println(">>> NewsletterServlet (subscribe-action) doGet WAS CALLED! <<<");
+        resp.setContentType("text/plain; charset=UTF-8");
+        resp.getWriter().println("NewsletterServlet (subscribe-action) GET is working!");
+    }
+    // ===>>> ============================================== <<<===
+}

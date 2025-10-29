@@ -1,0 +1,64 @@
+package com.abcnews.servlet;
+
+import com.abcnews.dao.NewsletterDAO;
+import com.abcnews.entity.Newsletter;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+
+@WebServlet("/NewsletterServlet")
+public class NewsletterServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        req.setCharacterEncoding("UTF-8");
+        String email = req.getParameter("email");
+
+        if (email == null || email.trim().isEmpty() || !email.contains("@")) {
+            req.setAttribute("error", "Email không hợp lệ. Vui lòng thử lại!");
+            req.getRequestDispatcher("/HomeServlet").forward(req, resp);
+            return;
+        }
+
+        NewsletterDAO dao = new NewsletterDAO();
+        try {
+            Newsletter exist = dao.getByEmail(email.trim()); // Trim email
+            if (exist != null) {
+                if (!exist.isEnabled()) {
+                     exist.setEnabled(true);
+                     dao.update(exist);
+                     req.setAttribute("success", "Đăng ký nhận bản tin đã được kích hoạt lại!");
+                } else {
+                    req.setAttribute("error", "Email này đã được đăng ký từ trước!");
+                }
+            } else {
+                Newsletter n = new Newsletter(email.trim(), true);
+                dao.insert(n);
+                req.setAttribute("success", "Đăng ký nhận bản tin thành công!");
+            }
+        } catch (Exception e) {
+             e.printStackTrace(); // In lỗi ra console
+            req.setAttribute("error", "Lỗi hệ thống khi đăng ký: " + e.getMessage());
+        }
+
+        req.getRequestDispatcher("/HomeServlet").forward(req, resp);
+    }
+
+    // ===>>> THÊM PHƯƠNG THỨC doGet NÀY ĐỂ TEST <<<===
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // In log ra Console của Eclipse để biết phương thức này có được gọi không
+        System.out.println(">>> NewsletterServlet doGet WAS CALLED! <<<");
+
+        // Trả về một dòng chữ đơn giản để kiểm tra trên trình duyệt
+        resp.setContentType("text/plain; charset=UTF-8");
+        resp.getWriter().println("NewsletterServlet GET is working!");
+    }
+    // ===>>> ================================== <<<===
+
+}

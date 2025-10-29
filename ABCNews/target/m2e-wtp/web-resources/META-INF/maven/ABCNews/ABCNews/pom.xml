@@ -18,7 +18,9 @@
         <jakarta.servlet.api.version>6.0.0</jakarta.servlet.api.version>
         <jakarta.jsp.api.version>3.1.1</jakarta.jsp.api.version>
         <jakarta.jstl.version>3.0.1</jakarta.jstl.version>
-        </properties>
+        <jakarta.mail.version>2.1.2</jakarta.mail.version>
+        <angus.mail.version>2.0.2</angus.mail.version>
+    </properties>
 
     <build>
         <plugins>
@@ -51,12 +53,11 @@
             <artifactId>jakarta.servlet.jsp.jstl</artifactId>
             <version>${jakarta.jstl.version}</version>
         </dependency>
-        <dependency>
+         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>jstl</artifactId>
             <version>1.2</version>
         </dependency>
-
         <dependency>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
@@ -76,15 +77,21 @@
             <version>1.9.3</version>
         </dependency>
         <dependency>
-            <groupId>javax.mail</groupId> <artifactId>mail</artifactId>
-            <version>1.4.7</version>
-        </dependency>
-        <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
             <version>12.2.0.jre11</version>
         </dependency>
 
+        <dependency>
+            <groupId>jakarta.mail</groupId>
+            <artifactId>jakarta.mail-api</artifactId>
+            <version>${jakarta.mail.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.angus</groupId>
+            <artifactId>angus-mail</artifactId>
+            <version>${angus.mail.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>bootstrap</artifactId>
@@ -93,6 +100,7 @@
         <dependency>
             <groupId>org.webjars</groupId>
             <artifactId>font-awesome</artifactId>
-            <version>6.2.0</version> </dependency>
+            <version>6.2.0</version>
+        </dependency>
     </dependencies>
 </project>

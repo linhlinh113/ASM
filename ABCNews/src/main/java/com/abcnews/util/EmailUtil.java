@@ -5,47 +5,39 @@ import com.abcnews.entity.Newsletter;
 
 import java.util.List;
 import java.util.Properties;
-import javax.mail.Authenticator;
-import javax.mail.Message;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+
+// ===>>> THAY ĐỔI IMPORT TỪ javax.mail SANG jakarta.mail <<<===
+import jakarta.mail.*;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
+// ===>>> =============================================== <<<===
 
 public class EmailUtil {
 
-    // === CẤU HÌNH (THAY ĐỔI 2 DÒNG NÀY) ===
-    // 1. Email của bạn (dùng để gửi)
-    private static final String APP_EMAIL = "your-email@gmail.com"; 
-    
-    // 2. Mật khẩu Ứng dụng (16 ký tự) - XEM HƯỚNG DẪN BÊN DƯỚI
-    private static final String APP_PASSWORD = "your-16-digit-app-password"; 
-    
-    // === CẤU HÌNH MÁY CHỦ (Giữ nguyên) ===
+    // === CẤU HÌNH EMAIL VÀ MẬT KHẨU ỨNG DỤNG (Giữ nguyên) ===
+    private static final String APP_EMAIL = "linh1172004@gmail.com";
+    private static final String APP_PASSWORD = "zshiynrdblwtckon";
+
+    // === CẤU HÌNH MÁY CHỦ (Giữ nguyên SSL/465) ===
     private static final String HOST_NAME = "smtp.gmail.com";
-    private static final int SSL_PORT = 465; // Port for SSL
-    private static final int TSL_PORT = 587; // Port for TSL
-    
+    private static final int SSL_PORT = 465;
 
-    /**
-     * Gửi một email cơ bản
-     * @param toEmail Email người nhận
-     * @param subject Tiêu đề
-     * @param content Nội dung (Hỗ trợ HTML)
-     * @throws Exception
-     */
     public static void sendEmail(String toEmail, String subject, String content) throws Exception {
-        System.out.println("Bắt đầu gửi email tới: " + toEmail);
+        System.out.println("Chuẩn bị gửi email tới: " + toEmail + " | Chủ đề: " + subject);
+        System.out.println("Sử dụng email gửi: " + APP_EMAIL);
 
-        // 1. Cài đặt thuộc tính
+        // === CẤU HÌNH SSL (Giữ nguyên) ===
         Properties props = new Properties();
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
         props.put("mail.smtp.host", HOST_NAME);
-        props.put("mail.smtp.port", TSL_PORT); // Sử dụng TSL
+        props.put("mail.smtp.port", String.valueOf(SSL_PORT)); // Chuyển port sang String
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.socketFactory.port", String.valueOf(SSL_PORT)); // Chuyển port sang String
+        props.put("mail.smtp.socketFactory.class", "jakarta.net.ssl.SSLSocketFactory"); // <<< THAY ĐỔI javax -> jakarta
+        props.put("mail.smtp.ssl.enable", "true"); // Giữ nguyên
+        // Thêm các thuộc tính TLS versions (đề phòng)
+        props.put("mail.smtp.ssl.protocols", "TLSv1.2 TLSv1.3");
 
-        // 2. Tạo phiên (Session) với Authenticator
+        // === Authenticator và Session (Giữ nguyên, chỉ thay đổi import) ===
         Authenticator auth = new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -53,52 +45,66 @@ public class EmailUtil {
             }
         };
         Session session = Session.getInstance(props, auth);
+        session.setDebug(true); // Vẫn bật Debug
 
-        // 3. Tạo tin nhắn
+        // === MimeMessage (Giữ nguyên, chỉ thay đổi import) ===
         MimeMessage msg = new MimeMessage(session);
-        
-        // Kiểu "ABCNews <your-email@gmail.com>"
         msg.setFrom(new InternetAddress(APP_EMAIL, "ABCNews"));
         msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
         msg.setSubject(subject, "UTF-8");
-        
-        // Đặt nội dung là HTML
         msg.setContent(content, "text/html; charset=UTF-8");
+        msg.setSentDate(new java.util.Date());
 
-        // 4. Gửi mail
+        System.out.println("Đang gửi email (qua Jakarta Mail - SSL)..."); // Cập nhật log
         Transport.send(msg);
-        
-        System.out.println("Gửi email thành công!");
+        System.out.println("Đã gửi email thành công tới: " + toEmail);
     }
 
-    /**
-     * Hàm tiện ích để gửi thông báo tin mới cho tất cả subscriber
-     * @param news Bài báo vừa được duyệt
-     * @param subscribers Danh sách email
-     */
+    // Hàm sendNewPostNotification giữ nguyên logic, chỉ thay đổi import
     public static void sendNewPostNotification(News news, List<Newsletter> subscribers) {
-        String subject = "[ABCNews] Tin mới: " + news.getTitle();
-        
-        // Tạo nội dung email HTML
-        String content = "<html><body style='font-family: Arial, sans-serif;'>"
-            + "<h2 style='color: #0056b3;'>Tin tức mới từ ABCNews</h2>"
-            + "<h3>" + news.getTitle() + "</h3>"
-            + "<img src='" + news.getImage() + "' alt='Ảnh minh họa' style='max-width: 400px;'>"
-            + "<p>" + news.getContent().substring(0, Math.min(news.getContent().length(), 150)) + "...</p>" // Lấy 150 ký tự đầu
-            + "<a href='#' style='padding: 10px 15px; background-color: #0056b3; color: white; text-decoration: none; border-radius: 5px;'>"
-            + "Đọc chi tiết</a>" // Chú ý: Cần thay # bằng link thật, ví dụ: "http://your-domain.com/NewsDetailServlet?id=" + news.getId()
-            + "</body></html>";
+         // ... (code không đổi) ...
+         if (news == null || subscribers == null || subscribers.isEmpty()) {
+            System.out.println("sendNewPostNotification: Không có tin tức hoặc không có người đăng ký.");
+            return;
+        }
 
-        // Gửi cho từng người
+        String subject = "[ABCNews] Tin mới: " + news.getTitle();
+        String newsLink = "http://localhost:8080/ABCNews/NewsDetailServlet?id=" + news.getId();
+
+        String content = String.format( /* ... code tạo content giữ nguyên ... */
+             "<html><body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>" +
+            "<div style='max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;'>" +
+            "<h2 style='color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 10px;'>Tin tức mới từ ABCNews</h2>" +
+            "<h3 style='color: #007bff;'>%s</h3>" +
+            (news.getImage() != null && !news.getImage().isEmpty() ?
+             "<p><img src='%s' alt='Ảnh minh họa' style='max-width: 100%%; height: auto; border-radius: 5px;'></p>" : "") +
+            "<p>%s...</p>" +
+            "<p style='margin-top: 20px;'>" +
+            "<a href='%s' style='display: inline-block; padding: 12px 20px; background-color: #0056b3; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;'>" +
+            "Đọc chi tiết</a>" +
+            "</p>" +
+            "<hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>" +
+            "<p style='font-size: 0.9em; color: #777;'>Bạn nhận được email này vì đã đăng ký nhận tin tại ABCNews.</p>" +
+            "</div></body></html>",
+            news.getTitle(),
+            news.getImage() != null ? news.getImage() : "",
+            news.getContent() != null ? news.getContent().substring(0, Math.min(news.getContent().length(), 200)) : "",
+            newsLink
+        );
+
+        int count = 0;
         for (Newsletter sub : subscribers) {
             if (sub.isEnabled()) {
                 try {
                     sendEmail(sub.getEmail(), subject, content);
+                    count++;
                 } catch (Exception e) {
                     System.err.println("Lỗi gửi mail tới " + sub.getEmail() + ": " + e.getMessage());
-                    // Tiếp tục gửi cho người khác
                 }
+            } else {
+                 System.out.println("Bỏ qua email bị tắt: " + sub.getEmail());
             }
         }
+         System.out.println("Hoàn tất gửi thông báo. Đã gửi tới " + count + "/" + subscribers.size() + " email.");
     }
 }

@@ -19,6 +19,7 @@ E:\ASM\ABCNews\src\main\java\com\abcnews\servlet\NewsletterServlet.java
 E:\ASM\ABCNews\src\main\java\com\abcnews\servlet\NewsListServlet.java
 E:\ASM\ABCNews\src\main\java\com\abcnews\servlet\ReporterNewsServlet.java
 E:\ASM\ABCNews\src\main\java\com\abcnews\servlet\SearchServlet.java
+E:\ASM\ABCNews\src\main\java\com\abcnews\servlet\TestServlet.java
 E:\ASM\ABCNews\src\main\java\com\abcnews\util\DBUtil.java
 E:\ASM\ABCNews\src\main\java\com\abcnews\util\EmailUtil.java
 E:\ASM\ABCNews\src\main\java\com\abcnews\util\PasswordUtil.java

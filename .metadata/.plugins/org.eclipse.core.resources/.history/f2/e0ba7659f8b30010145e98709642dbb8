@@ -1,0 +1,113 @@
+package com.abcnews.util;
+
+import com.abcnews.entity.News;
+import com.abcnews.entity.Newsletter;
+
+import java.util.List;
+import java.util.Properties;
+import javax.mail.*; // Import đầy đủ hơn
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
+
+public class EmailUtil {
+
+    // === CẤU HÌNH (EMAIL ĐÃ ĐƯỢC CẬP NHẬT) ===
+    // 1. Email Gmail của bạn (dùng để gửi)
+    private static final String APP_EMAIL = "linh1172004@gmail.com"; // <<< EMAIL CỦA BẠN
+
+    // 2. Mật khẩu Ứng dụng (16 ký tự bạn vừa tạo)
+    private static final String APP_PASSWORD = "zshiynrdblwtckon"; // <<< MẬT KHẨU ỨNG DỤNG
+
+    // === CẤU HÌNH MÁY CHỦ (Giữ nguyên) ===
+    private static final String HOST_NAME = "smtp.gmail.com";
+    private static final int TSL_PORT = 587; // Port for TLS/STARTTLS
+
+    /**
+     * Gửi một email cơ bản
+     * @param toEmail Email người nhận
+     * @param subject Tiêu đề
+     * @param content Nội dung (Hỗ trợ HTML)
+     * @throws Exception
+     */
+    public static void sendEmail(String toEmail, String subject, String content) throws Exception {
+        System.out.println("Chuẩn bị gửi email tới: " + toEmail + " | Chủ đề: " + subject);
+        System.out.println("Sử dụng email gửi: " + APP_EMAIL);
+
+        Properties props = new Properties();
+        props.put("mail.smtp.host", HOST_NAME);
+        props.put("mail.smtp.port", TSL_PORT);
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+
+        Authenticator auth = new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(APP_EMAIL, APP_PASSWORD);
+            }
+        };
+        Session session = Session.getInstance(props, auth);
+        // session.setDebug(true); // Bỏ comment để xem log gửi mail chi tiết
+
+        MimeMessage msg = new MimeMessage(session);
+        msg.setFrom(new InternetAddress(APP_EMAIL, "ABCNews"));
+        msg.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
+        msg.setSubject(subject, "UTF-8");
+        msg.setContent(content, "text/html; charset=UTF-8");
+        msg.setSentDate(new java.util.Date());
+
+        System.out.println("Đang gửi email...");
+        Transport.send(msg);
+        System.out.println("Đã gửi email thành công tới: " + toEmail);
+    }
+
+    /**
+     * Hàm tiện ích để gửi thông báo tin mới cho tất cả subscriber
+     * @param news Bài báo vừa được duyệt
+     * @param subscribers Danh sách email
+     */
+    public static void sendNewPostNotification(News news, List<Newsletter> subscribers) {
+        if (news == null || subscribers == null || subscribers.isEmpty()) {
+            System.out.println("sendNewPostNotification: Không có tin tức hoặc không có người đăng ký.");
+            return;
+        }
+
+        String subject = "[ABCNews] Tin mới: " + news.getTitle();
+        String newsLink = "http://localhost:8080/ABCNews/NewsDetailServlet?id=" + news.getId();
+
+        String content = String.format(
+            "<html><body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>" +
+            "<div style='max-width: 600px; margin: 20px auto; padding: 20px; border: 1px solid #ddd; border-radius: 8px; background-color: #f9f9f9;'>" +
+            "<h2 style='color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 10px;'>Tin tức mới từ ABCNews</h2>" +
+            "<h3 style='color: #007bff;'>%s</h3>" +
+            (news.getImage() != null && !news.getImage().isEmpty() ?
+             "<p><img src='%s' alt='Ảnh minh họa' style='max-width: 100%%; height: auto; border-radius: 5px;'></p>" : "") +
+            "<p>%s...</p>" +
+            "<p style='margin-top: 20px;'>" +
+            "<a href='%s' style='display: inline-block; padding: 12px 20px; background-color: #0056b3; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;'>" +
+            "Đọc chi tiết</a>" +
+            "</p>" +
+            "<hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>" +
+            "<p style='font-size: 0.9em; color: #777;'>Bạn nhận được email này vì đã đăng ký nhận tin tại ABCNews.</p>" +
+            "</div></body></html>",
+            news.getTitle(),
+            news.getImage() != null ? news.getImage() : "",
+            news.getContent() != null ? news.getContent().substring(0, Math.min(news.getContent().length(), 200)) : "",
+            newsLink
+        );
+
+        int count = 0;
+        for (Newsletter sub : subscribers) {
+            if (sub.isEnabled()) {
+                try {
+                    sendEmail(sub.getEmail(), subject, content);
+                    count++;
+                } catch (Exception e) {
+                    System.err.println("Lỗi gửi mail tới " + sub.getEmail() + ": " + e.getMessage());
+                }
+            } else {
+                 System.out.println("Bỏ qua email bị tắt: " + sub.getEmail());
+            }
+        }
+         System.out.println("Hoàn tất gửi thông báo. Đã gửi tới " + count + "/" + subscribers.size() + " email.");
+    }
+}

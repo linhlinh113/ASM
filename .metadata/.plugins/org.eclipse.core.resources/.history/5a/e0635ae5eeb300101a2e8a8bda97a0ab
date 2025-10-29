@@ -1,0 +1,58 @@
+package com.abcnews.servlet;
+
+import com.abcnews.dao.CategoryDAO;
+import com.abcnews.dao.NewsDAO;
+import com.abcnews.entity.Category;
+import com.abcnews.entity.News;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.util.List;
+
+@WebServlet(urlPatterns = {"", "/HomeServlet"}) // Chạy khi truy cập root (/)
+public class HomeServlet extends HttpServlet {
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // Set UTF-8 để hiển thị Tiếng Việt
+        req.setCharacterEncoding("UTF-8");
+        resp.setContentType("text/html; charset=UTF-8");
+
+        NewsDAO newsDao = new NewsDAO();
+        CategoryDAO catDao = new CategoryDAO();
+        
+        try {
+            // 1. Lấy Danh mục (cho left_sidebar.jsp)
+            List<Category> categoryList = catDao.getAll();
+            
+            // 2. Lấy 5 Tin Hot (cho right_sidebar.jsp)
+            List<News> hotList = newsDao.getHotNews(5);
+            
+            // 3. Lấy 5 Tin Mới nhất (cho right_sidebar.jsp)
+            List<News> newestList = newsDao.getNewestNews(5);
+            
+            // 4. Lấy Tin Trang chủ (cho index.jsp)
+            List<News> homeNews = newsDao.getHomeNews();
+            
+            // 5. Đẩy tất cả dữ liệu vào request
+            req.setAttribute("categoryList", categoryList);
+            req.setAttribute("hotList", hotList);
+            req.setAttribute("newestList", newestList);
+            req.setAttribute("homeNews", homeNews);
+            
+            // 6. Chuyển sang index.jsp để hiển thị
+            req.getRequestDispatcher("/index.jsp").forward(req, resp);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            // Hiển thị lỗi ra trang chủ
+            req.setAttribute("error", "Không thể tải dữ liệu trang chủ: " + e.getMessage());
+            req.getRequestDispatcher("/index.jsp").forward(req, resp);
+        }
+    }
+}
